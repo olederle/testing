@@ -1,0 +1,19 @@
+Create a leap year verifications class called LeapYear.
+
+1. A leap year is:
+   1. - divisible by 4
+   2. - not divisible by 100, unless it is also divisible by 400.
+
+2. The leap year was introduced in the Julian calendar in 46 BC.
+  However, around 10 BC, it was found that the priests in charge
+  of computing the calendar had been adding leap years every three
+  years instead of the four decreed by Caesar (Vardi 1991, p. 239).
+  As a result of this error, no more leap years were added until 8 AD.
+  See: https://scienceworld.wolfram.com/astronomy/LeapYear.html
+
+    * 4AD -> no leap year
+    * 0AD -> no leap year
+    * 50BC -> no leap year
+    * 8 AD -> leap year
+    * 30 BC -> leap year
+    * 45BC -> leap year

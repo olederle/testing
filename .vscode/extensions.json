@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "csharpier.csharpier-vscode",
+        "patcx.vscode-nuget-gallery",
+    ]
+}
