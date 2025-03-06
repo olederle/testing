@@ -2,40 +2,97 @@ namespace UnitTests.Tests;
 
 public class PasswordVerifierTests
 {
-    [
-        Theory,
-        InlineData("aB7a", false), // invalid class
-        InlineData("aB7abcdefgh", true), // valid class
-        InlineData("aB7jklu", false), // upper boundary invalid
-        InlineData("aB7jklua", true) // lower boundary valid
-    ]
-    public void ValidatePasswordByLength(string password, bool isValid)
+    [Fact]
+    public void DoesNotAcceptNullAsPassword()
     {
         // act
-        bool isValidPassword = PasswordVerifier.Validate(password);
+        PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
+            () => PasswordVerifier.Validate(null!)
+        );
 
         // assert
-        Assert.Equal(isValid, isValidPassword);
+        Assert.False(ex.ValidationResult.IsValid);
+        Assert.Equal(PasswordValidationRule.NotNull, ex.ValidationResult.ValidationRule);
+        Assert.Equal("password should not be null", ex.ValidationResult.Message);
+    }
+
+    [
+        Theory,
+        InlineData("aB7a"), // invalid class
+        InlineData("aB7jklu"), // upper boundary invalid
+    ]
+    public void DoesThrowForPasswordsWithInvalidLength(string password)
+    {
+        // act
+        PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
+            () => PasswordVerifier.Validate(password)
+        );
+
+        // assert
+        Assert.False(ex.ValidationResult.IsValid);
+        Assert.Equal(PasswordValidationRule.Length, ex.ValidationResult.ValidationRule);
+        Assert.Equal("password should be larger than 8 chars", ex.ValidationResult.Message);
+    }
+
+    [
+        Theory,
+        InlineData("aB7abcdefgh"), // valid class
+        InlineData("aB7jklua") // lower boundary valid
+    ]
+    public void DoesAcceptPasswordsWithCorrectLength(string password)
+    {
+        // act
+        PasswordVerifier.Validate(password);
+
+        // assert
+        // nothng to do, because if password is invalid an exception is thrown
     }
 
     [Fact]
     public void ValidatePasswortWithoutLowerLetter()
     {
-        bool isValidPassword = PasswordVerifier.Validate("123456789A");
-        Assert.False(isValidPassword);
+        // act
+        PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
+            () => PasswordVerifier.Validate("123456789A")
+        );
+
+        // assert
+        Assert.False(ex.ValidationResult.IsValid);
+        Assert.Equal(PasswordValidationRule.Lowercase, ex.ValidationResult.ValidationRule);
+        Assert.Equal(
+            "password should have one lowercase letter at least",
+            ex.ValidationResult.Message
+        );
     }
 
     [Fact]
     public void ValidatePasswortWithoutUperLetter()
     {
-        bool isValidPassword = PasswordVerifier.Validate("123456789a");
-        Assert.False(isValidPassword);
+        // act
+        PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
+            () => PasswordVerifier.Validate("123456789a")
+        );
+
+        // assert
+        Assert.False(ex.ValidationResult.IsValid);
+        Assert.Equal(PasswordValidationRule.Uppercase, ex.ValidationResult.ValidationRule);
+        Assert.Equal(
+            "password should have one uppercase letter at least",
+            ex.ValidationResult.Message
+        );
     }
 
     [Fact]
     public void ValidatePasswortWithoutNumber()
     {
-        bool isValidPassword = PasswordVerifier.Validate("abcdefghijkLM");
-        Assert.False(isValidPassword);
+        // act
+        PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
+            () => PasswordVerifier.Validate("abcdefghijkLM")
+        );
+
+        // assert
+        Assert.False(ex.ValidationResult.IsValid);
+        Assert.Equal(PasswordValidationRule.Number, ex.ValidationResult.ValidationRule);
+        Assert.Equal("password should have one number at least", ex.ValidationResult.Message);
     }
 }
