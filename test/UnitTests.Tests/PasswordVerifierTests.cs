@@ -38,11 +38,15 @@ public class PasswordVerifierTests
     {
         PasswordVerificationException ex = Assert.Throws<PasswordVerificationException>(() =>
         {
-            PasswordVerifier.Validate("123456789A");
+            PasswordVerifier.Validate("123456A");
         });
 
-        Assert.False(ex.VerificationResult.IsValid);
-        Assert.Equal(PasswordVerificationRule.Lower, ex.VerificationResult.Rule);
+        Assert.Equal(2, ex.VerificationResults.Count);
+        Assert.Contains(
+            PasswordVerificationRule.Length,
+            ex.VerificationResults.Select(v => v.Rule)
+        );
+        Assert.Contains(PasswordVerificationRule.Lower, ex.VerificationResults.Select(v => v.Rule));
     }
 
     [Fact]
@@ -50,11 +54,15 @@ public class PasswordVerifierTests
     {
         PasswordVerificationException ex = Assert.Throws<PasswordVerificationException>(() =>
         {
-            PasswordVerifier.Validate("123456789a");
+            PasswordVerifier.Validate("123456a");
         });
 
-        Assert.False(ex.VerificationResult.IsValid);
-        Assert.Equal(PasswordVerificationRule.Upper, ex.VerificationResult.Rule);
+        Assert.Equal(2, ex.VerificationResults.Count);
+        Assert.Contains(
+            PasswordVerificationRule.Length,
+            ex.VerificationResults.Select(v => v.Rule)
+        );
+        Assert.Contains(PasswordVerificationRule.Upper, ex.VerificationResults.Select(v => v.Rule));
     }
 
     [Fact]
@@ -62,10 +70,14 @@ public class PasswordVerifierTests
     {
         PasswordVerificationException ex = Assert.Throws<PasswordVerificationException>(() =>
         {
-            PasswordVerifier.Validate("abcdefghijkLM");
+            PasswordVerifier.Validate("abcdefM");
         });
 
-        Assert.False(ex.VerificationResult.IsValid);
-        Assert.Equal(PasswordVerificationRule.Digit, ex.VerificationResult.Rule);
+        Assert.Equal(2, ex.VerificationResults.Count);
+        Assert.Contains(
+            PasswordVerificationRule.Length,
+            ex.VerificationResults.Select(v => v.Rule)
+        );
+        Assert.Contains(PasswordVerificationRule.Digit, ex.VerificationResults.Select(v => v.Rule));
     }
 }
