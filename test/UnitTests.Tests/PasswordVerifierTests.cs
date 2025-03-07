@@ -11,15 +11,16 @@ public class PasswordVerifierTests
         );
 
         // assert
-        Assert.False(ex.ValidationResult.IsValid);
-        Assert.Equal(PasswordValidationRule.NotNull, ex.ValidationResult.ValidationRule);
-        Assert.Equal("password should not be null", ex.ValidationResult.Message);
+        Assert.Single(ex.ValidationResults);
+        Assert.False(ex.ValidationResults[0].IsValid);
+        Assert.Equal(PasswordValidationRule.NotNull, ex.ValidationResults[0].ValidationRule);
+        Assert.Equal("password should not be null", ex.ValidationResults[0].Message);
     }
 
     [
         Theory,
-        InlineData("aB7a"), // invalid class
-        InlineData("aB7jklu"), // upper boundary invalid
+        InlineData("AB7A"), // invalid class
+        InlineData("AB7JKLU"), // upper boundary invalid
     ]
     public void DoesThrowForPasswordsWithInvalidLength(string password)
     {
@@ -29,9 +30,17 @@ public class PasswordVerifierTests
         );
 
         // assert
-        Assert.False(ex.ValidationResult.IsValid);
-        Assert.Equal(PasswordValidationRule.Length, ex.ValidationResult.ValidationRule);
-        Assert.Equal("password should be larger than 8 chars", ex.ValidationResult.Message);
+        Assert.Equal(2, ex.ValidationResults.Count);
+        Assert.False(ex.ValidationResults[0].IsValid);
+        Assert.False(ex.ValidationResults[1].IsValid);
+        Assert.Contains(
+            PasswordValidationRule.Length,
+            ex.ValidationResults.Select(v => v.ValidationRule)
+        );
+        Assert.Contains(
+            "password should be larger than 8 chars",
+            ex.ValidationResults.Select(v => v.Message)
+        );
     }
 
     [
@@ -53,15 +62,20 @@ public class PasswordVerifierTests
     {
         // act
         PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
-            () => PasswordVerifier.Validate("123456789A")
+            () => PasswordVerifier.Validate("123456A")
         );
 
         // assert
-        Assert.False(ex.ValidationResult.IsValid);
-        Assert.Equal(PasswordValidationRule.Lowercase, ex.ValidationResult.ValidationRule);
-        Assert.Equal(
+        Assert.Equal(2, ex.ValidationResults.Count);
+        Assert.False(ex.ValidationResults[0].IsValid);
+        Assert.False(ex.ValidationResults[1].IsValid);
+        Assert.Contains(
+            PasswordValidationRule.Lowercase,
+            ex.ValidationResults.Select(v => v.ValidationRule)
+        );
+        Assert.Contains(
             "password should have one lowercase letter at least",
-            ex.ValidationResult.Message
+            ex.ValidationResults.Select(v => v.Message)
         );
     }
 
@@ -70,15 +84,20 @@ public class PasswordVerifierTests
     {
         // act
         PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
-            () => PasswordVerifier.Validate("123456789a")
+            () => PasswordVerifier.Validate("123456a")
         );
 
         // assert
-        Assert.False(ex.ValidationResult.IsValid);
-        Assert.Equal(PasswordValidationRule.Uppercase, ex.ValidationResult.ValidationRule);
-        Assert.Equal(
+        Assert.Equal(2, ex.ValidationResults.Count);
+        Assert.False(ex.ValidationResults[0].IsValid);
+        Assert.False(ex.ValidationResults[1].IsValid);
+        Assert.Contains(
+            PasswordValidationRule.Uppercase,
+            ex.ValidationResults.Select(v => v.ValidationRule)
+        );
+        Assert.Contains(
             "password should have one uppercase letter at least",
-            ex.ValidationResult.Message
+            ex.ValidationResults.Select(v => v.Message)
         );
     }
 
@@ -87,12 +106,20 @@ public class PasswordVerifierTests
     {
         // act
         PasswordValidationException ex = Assert.Throws<PasswordValidationException>(
-            () => PasswordVerifier.Validate("abcdefghijkLM")
+            () => PasswordVerifier.Validate("abcdeM")
         );
 
         // assert
-        Assert.False(ex.ValidationResult.IsValid);
-        Assert.Equal(PasswordValidationRule.Number, ex.ValidationResult.ValidationRule);
-        Assert.Equal("password should have one number at least", ex.ValidationResult.Message);
+        Assert.Equal(2, ex.ValidationResults.Count);
+        Assert.False(ex.ValidationResults[0].IsValid);
+        Assert.False(ex.ValidationResults[1].IsValid);
+        Assert.Contains(
+            PasswordValidationRule.Number,
+            ex.ValidationResults.Select(v => v.ValidationRule)
+        );
+        Assert.Contains(
+            "password should have one number at least",
+            ex.ValidationResults.Select(v => v.Message)
+        );
     }
 }

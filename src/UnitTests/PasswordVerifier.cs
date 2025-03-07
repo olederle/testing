@@ -35,15 +35,15 @@ public readonly struct PasswordValidationResult
     {
         if (IsValid == false)
         {
-            throw new PasswordValidationException(this);
+            throw new PasswordValidationException([this]);
         }
     }
 }
 
-public class PasswordValidationException(PasswordValidationResult validationResult)
-    : Exception(validationResult.Message)
+public class PasswordValidationException(IReadOnlyList<PasswordValidationResult> validationResults)
+    : Exception(string.Join(", ", validationResults.Select(v => v.Message)))
 {
-    public PasswordValidationResult ValidationResult = validationResult;
+    public IReadOnlyList<PasswordValidationResult> ValidationResults = validationResults;
 }
 
 public class PasswordVerifier
@@ -65,36 +65,51 @@ public class PasswordVerifier
             return;
         }
 
+        List<PasswordValidationResult> results = [];
+
         if (password.Length < 8)
         {
-            new PasswordValidationResult(
-                PasswordValidationRule.Length,
-                "password should be larger than 8 chars"
-            ).ThrowIfInvalid();
+            results.Add(
+                new PasswordValidationResult(
+                    PasswordValidationRule.Length,
+                    "password should be larger than 8 chars"
+                )
+            );
         }
 
         if (!password.Any(Char.IsLower))
         {
-            new PasswordValidationResult(
-                PasswordValidationRule.Lowercase,
-                "password should have one lowercase letter at least"
-            ).ThrowIfInvalid();
+            results.Add(
+                new PasswordValidationResult(
+                    PasswordValidationRule.Lowercase,
+                    "password should have one lowercase letter at least"
+                )
+            );
         }
 
         if (!password.Any(Char.IsUpper))
         {
-            new PasswordValidationResult(
-                PasswordValidationRule.Uppercase,
-                "password should have one uppercase letter at least"
-            ).ThrowIfInvalid();
+            results.Add(
+                new PasswordValidationResult(
+                    PasswordValidationRule.Uppercase,
+                    "password should have one uppercase letter at least"
+                )
+            );
         }
 
         if (!password.Any(Char.IsDigit))
         {
-            new PasswordValidationResult(
-                PasswordValidationRule.Number,
-                "password should have one number at least"
-            ).ThrowIfInvalid();
+            results.Add(
+                new PasswordValidationResult(
+                    PasswordValidationRule.Number,
+                    "password should have one number at least"
+                )
+            );
+        }
+
+        if (results.Count > 1)
+        {
+            throw new PasswordValidationException(results);
         }
     }
 }
