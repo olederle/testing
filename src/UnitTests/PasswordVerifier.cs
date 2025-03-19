@@ -1,31 +1,33 @@
 namespace UnitTests;
 
-public enum PasswordVerificationRule
+public enum PasswordValidationRule
 {
-    NotNull,
     Length,
-    Lower,
-    Upper,
-    Digit,
+    NotNull,
+    Uppercase,
+    Lowercase,
+    Number,
 }
 
-public struct PasswordVerificationResult
+public readonly struct PasswordValidationResult
 {
     public bool IsValid { get; }
-    public PasswordVerificationRule Rule { get; }
+
+    public PasswordValidationRule ValidationRule { get; }
+
     public string Message { get; }
 
-    public PasswordVerificationResult(PasswordVerificationRule rule, string message)
+    public PasswordValidationResult(PasswordValidationRule validationRule, string message)
     {
         IsValid = false;
-        Rule = rule;
+        ValidationRule = validationRule;
         Message = message;
     }
 
-    public PasswordVerificationResult(PasswordVerificationRule rule)
+    public PasswordValidationResult(PasswordValidationRule validationRule)
     {
         IsValid = true;
-        Rule = rule;
+        ValidationRule = validationRule;
         Message = string.Empty;
     }
 
@@ -33,20 +35,15 @@ public struct PasswordVerificationResult
     {
         if (IsValid == false)
         {
-            throw new PasswordVerificationException([this]);
+            throw new PasswordValidationException(this);
         }
     }
 }
 
-public class PasswordVerificationException : Exception
+public class PasswordValidationException(PasswordValidationResult validationResult)
+    : Exception(validationResult.Message)
 {
-    public List<PasswordVerificationResult> VerificationResults { get; }
-
-    public PasswordVerificationException(List<PasswordVerificationResult> verificationResults)
-        : base()
-    {
-        VerificationResults = verificationResults;
-    }
+    public PasswordValidationResult ValidationResult = validationResult;
 }
 
 public class PasswordVerifier
@@ -61,60 +58,43 @@ public class PasswordVerifier
     {
         if (password == null)
         {
-            new PasswordVerificationResult(
-                PasswordVerificationRule.NotNull,
+            new PasswordValidationResult(
+                PasswordValidationRule.NotNull,
                 "password should not be null"
             ).ThrowIfInvalid();
             return;
         }
 
-        List<PasswordVerificationResult> invalids = [];
-
         if (password.Length < 8)
         {
-            invalids.Add(
-                new PasswordVerificationResult(
-                    PasswordVerificationRule.Length,
-                    "password should be larger than 8 chars"
-                )
-            );
+            new PasswordValidationResult(
+                PasswordValidationRule.Length,
+                "password should be larger than 8 chars"
+            ).ThrowIfInvalid();
         }
 
         if (!password.Any(Char.IsLower))
         {
-            invalids.Add(
-                new PasswordVerificationResult(
-                    PasswordVerificationRule.Lower,
-                    "password should have one lowercase letter at least"
-                )
-            );
+            new PasswordValidationResult(
+                PasswordValidationRule.Lowercase,
+                "password should have one lowercase letter at least"
+            ).ThrowIfInvalid();
         }
 
         if (!password.Any(Char.IsUpper))
         {
-            invalids.Add(
-                new PasswordVerificationResult(
-                    PasswordVerificationRule.Upper,
-                    "password should have one uppercase letter at least"
-                )
-            );
+            new PasswordValidationResult(
+                PasswordValidationRule.Uppercase,
+                "password should have one uppercase letter at least"
+            ).ThrowIfInvalid();
         }
 
         if (!password.Any(Char.IsDigit))
         {
-            invalids.Add(
-                new PasswordVerificationResult(
-                    PasswordVerificationRule.Digit,
-                    "password should have one number at least"
-                )
-            );
+            new PasswordValidationResult(
+                PasswordValidationRule.Number,
+                "password should have one number at least"
+            ).ThrowIfInvalid();
         }
-
-        if (invalids.Count > 1)
-        {
-            throw new PasswordVerificationException(invalids);
-        }
-
-        return;
     }
 }
