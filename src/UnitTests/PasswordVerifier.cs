@@ -65,6 +65,15 @@ public class PasswordVerifier
             return;
         }
 
+        if (!password.Any(Char.IsLower))
+        {
+            new PasswordValidationResult(
+                PasswordValidationRule.Lowercase,
+                "password should have one lowercase letter at least"
+            ).ThrowIfInvalid();
+            return;
+        }
+
         List<PasswordValidationResult> results = [];
 
         if (password.Length < 8)
@@ -73,16 +82,6 @@ public class PasswordVerifier
                 new PasswordValidationResult(
                     PasswordValidationRule.Length,
                     "password should be larger than 8 chars"
-                )
-            );
-        }
-
-        if (!password.Any(Char.IsLower))
-        {
-            results.Add(
-                new PasswordValidationResult(
-                    PasswordValidationRule.Lowercase,
-                    "password should have one lowercase letter at least"
                 )
             );
         }

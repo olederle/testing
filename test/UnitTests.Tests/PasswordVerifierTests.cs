@@ -19,8 +19,8 @@ public class PasswordVerifierTests
 
     [
         Theory,
-        InlineData("AB7A"), // invalid class
-        InlineData("AB7JKLU"), // upper boundary invalid
+        InlineData("ABcA"), // invalid class
+        InlineData("ABcJKLU"), // upper boundary invalid
     ]
     public void DoesThrowForPasswordsWithInvalidLength(string password)
     {
@@ -66,9 +66,8 @@ public class PasswordVerifierTests
         );
 
         // assert
-        Assert.Equal(2, ex.ValidationResults.Count);
+        Assert.Single(ex.ValidationResults);
         Assert.False(ex.ValidationResults[0].IsValid);
-        Assert.False(ex.ValidationResults[1].IsValid);
         Assert.Contains(
             PasswordValidationRule.Lowercase,
             ex.ValidationResults.Select(v => v.ValidationRule)
